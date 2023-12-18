@@ -1,6 +1,6 @@
 
 from util import harness
-from typing import TextIO, List
+from typing import TextIO, List, Callable, Set
 
 if __name__ == '__main__':
     harness(3)
@@ -20,8 +20,7 @@ def _neighbors(matrix: List[List[str]], x: int, y: int):
     return set(matrix[_y][_x] for _y in ys for _x in xs if (y != _y or x != _x))
 
 
-def part_a(infile: TextIO) -> str:
-    result = 0
+def common(infile: TextIO, fn: Callable[[int,Set[str]], None]):
     matrix = [list(l.strip()) for l in infile.readlines() if l.strip()]
     symbols = set()
     for l in matrix:
@@ -38,18 +37,25 @@ def part_a(infile: TextIO) -> str:
                 neighbors |= _neighbors(matrix, x, y)
             else:
                 if cur_num and (neighbors & symbols):
+                    fn(int(cur_num), neighbors)
                     # print(f'found {cur_num}')
                     # print("VALID")
-                    result += int(cur_num)
+                    # result += int(cur_num)
                 cur_num = ''
                 neighbors = set()
         if cur_num and (neighbors & symbols):
-            result += int(cur_num)
+            fn(int(cur_num), neighbors)
 
+
+def part_a(infile: TextIO) -> str:
+    result = 0
+    def inner(part_no: int, neighbors: Set[str]):
+        nonlocal result
+        result += part_no
+    common(infile, inner)
     return str(result)
 
 
-
 def part_b(infile: TextIO) -> str:
+    # idx_to_parts =
     pass
-
