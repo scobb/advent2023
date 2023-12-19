@@ -29,7 +29,6 @@ def harness(day: int) -> None:
             samplefile_path = f"{day}sample.txt"
             if os.path.exists(get_input_filepath(f"{day}{part}sample.txt")):
                 samplefile_path = f"{day}{part}sample.txt"
-            print(samplefile_path)
             with open(get_input_filepath(samplefile_path)) as samplefile:
                 with open(get_output_filepath(f"{day}{part}.txt")) as resultfile:
                     expected = resultfile.read().strip()
