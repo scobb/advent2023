@@ -37,6 +37,7 @@ def harness(day: int) -> None:
                 sample_result = call_fn(day, samplefile, f'part_{part}')
                 if sample_result != expected:
                     raise ValueError(f"Mismatch in part {part} sample: '{expected}' does not match '{sample_result}'")
+                print('---')
             with open(get_input_filepath(f"{day}.txt")) as infile:
                 result = call_fn(day, infile, f'part_{part}')
                 print(f"PART {part} RESULT: '{result}'")
