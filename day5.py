@@ -43,7 +43,7 @@ class MappingFound(Exception):
 def parse_input(infile: TextIO) -> Tuple[Tuple[int],List[List[IslandMap]]]:
     seeds = tuple(map(int, infile.readline().split(':')[1].split()))
     infile.readline()
-    print(seeds)
+    # print(seeds)
     map_sets = []
     for idx in range(7):
         # label
@@ -104,7 +104,7 @@ def part_b(infile: TextIO) -> str:
     while execution_frames:
         # end not inclusive
         start, end, mapset_idx, map_idx = execution_frames.pop()
-        print(start, end, mapset_idx, map_idx)
+        # print(start, end, mapset_idx, map_idx)
         if mapset_idx == len(map_sets):
             min_value = min(min_value, start)
             continue
