@@ -1,14 +1,14 @@
 
 from util import harness
-from typing import TextIO
+from typing import TextIO, Tuple, Dict
 import re
 
 if __name__ == '__main__':
     harness(8)
 
-regexp = r'(?P<k>[A-Z]{3}) = \((?P<l>[A-Z]{3}), (?P<r>[A-Z]{3})\)'
+regexp = r'(?P<k>[A-Z0-9]{3}) = \((?P<l>[A-Z0-9]{3}), (?P<r>[A-Z0-9]{3})\)'
 
-def part_a(infile: TextIO) -> str:
+def parse(infile: TextIO) -> Tuple[str,Dict[str,Dict[str,str]]]:
     mappings = {}
     mvt_pattern = infile.readline().strip()
     infile.readline()
@@ -22,7 +22,10 @@ def part_a(infile: TextIO) -> str:
             mappings[m.group('k')] = {'L': m.group('l'),'R': m.group('r')}
         else:
             raise ValueError('no match')
-        # print(mappings)
+    return mvt_pattern, mappings
+
+def part_a(infile: TextIO) -> str:
+    mvt_pattern, mappings = parse(infile)
     steps = 0
     pos = 'AAA'
     while True:
@@ -34,8 +37,25 @@ def part_a(infile: TextIO) -> str:
     return str(steps)
 
 
-
-
 def part_b(infile: TextIO) -> str:
-    pass
+    mvt_pattern, mappings = parse(infile)
 
+    steps = 0
+    positions = [k for k in mappings if k.endswith('A')]
+    solutions = [[] for _ in positions]
+    solution_freq = [None for _ in positions]
+    while True:
+        for idx in range(len(positions)):
+            pos = positions[idx]
+            positions[idx] = mappings[pos][mvt_pattern[steps % len(mvt_pattern)]]
+            if positions[idx].endswith('Z'):
+                solutions[idx].append(steps+1)
+                if len(solutions[idx]) > 1:
+                    solution_freq[idx] = solutions[idx][1] - solutions[idx][0]
+
+        steps += 1
+        if all(freq is not None for freq in solution_freq):
+            break
+    print(solution_freq)
+    from math import lcm
+    return str(lcm(*solution_freq))
