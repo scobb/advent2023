@@ -64,9 +64,113 @@ def part_a(infile: TextIO) -> str:
             break
     return str(1+cnt // 2)
 
+"""
+    | is a vertical pipe connecting north and south.
+    - is a horizontal pipe connecting east and west.
+    L is a 90-degree bend connecting north and east.
+    J is a 90-degree bend connecting north and west.
+    7 is a 90-degree bend connecting south and west.
+    F is a 90-degree bend connecting south and east.
+    . is ground; there is no pipe in this tile.
+    S is the starting position of the animal; there is a pipe on this tile, 
+    but your sketch doesn't show what shape the pipe has.
+"""
+NORTH = (-1,0)
+SOUTH = (1,0)
+EAST = (0,1)
+WEST = (0,-1)
 
+r_splits = {
+    # north and south
+    '|': {
+        # coming from the north - this is on the right
+        # delta_y, delta_x
+        NORTH: (WEST,),
+        # coming from the south - this is on the right
+        SOUTH: (EAST,),
+    },
+    # east and west.
+    '-': {
+        # coming from the east - this is on the right
+        EAST: (NORTH,),
+        # coming from the west - this is on the right
+        WEST: (SOUTH,)
+    },
+    # L is a 90-degree bend connecting north and east.
+    'L': {
+        # coming from the north - this is on the right
+        NORTH:(WEST, SOUTH),
+        # coming form the east, this is on the right
+        EAST:()
+    },
+    # J is a 90-degree bend connecting north and west.
+    'J': {
+        # coming from the north - this is on the right
+        NORTH:(),
+        # coming from the west, this is on the right
+        WEST: (SOUTH,EAST,),
+    },
+    # 7 is a 90-degree bend connecting south and west.
+    '7': {
+        # coming from the south
+        SOUTH:(EAST, NORTH),
+        # from the west
+        WEST:()
+    },
+    # F is a 90-degree bend connecting south and east.
+    'F': {
+        # coming from the south
+        SOUTH: (),
+        # from the east
+        EAST: (WEST, NORTH)
+    }
+}
+l_splits = {}
+for k, v in r_splits.items():
+    split = {}
+    r_keys = tuple(v.keys())
+    split[r_keys[0]] = v[r_keys[1]]
+    split[r_keys[1]] = v[r_keys[0]]
+    l_splits[k] = split
 
 
 def part_b(infile: TextIO) -> str:
-    pass
+
+    grid = [l.strip() for l in infile.readlines() if l.strip()]
+    s_pos = None
+    for y in range(len(grid)):
+        for x in range(len(grid[0])):
+            if grid[y][x] == 'S':
+                s_pos = y,x
+                break
+    pos = tuple(n for n in _neighbors(grid, s_pos[0], s_pos[1]))[0]
+    prev = s_pos
+    path = [s_pos]
+    while True:
+        # print(pos)
+        _y,_x = pos
+        candidates = tuple(n for n in _neighbors(grid,_y,_x) if n != prev)
+        # print(candidates)
+        if len(candidates) != 1:
+            raise ValueError('unexpected multiple candidates')
+        path.append(pos)
+        prev = pos
+        pos = candidates[0]
+        if pos == s_pos:
+            break
+
+    print(path)
+    path_set = set(path)
+    r_set = set()
+    for idx in range(1,len(path)):
+        prev = path[idx-1]
+        cur = path[idx]
+        from_dir = (prev[0]-cur[0],prev[1]-cur[1])
+        pipe = grid[cur[0]][cur[1]]
+        for delta in l_splits[pipe][from_dir]:
+            entry = cur[0]+delta[0],cur[1]+delta[1]
+            if 0 <= entry[0] < len(grid) and 0 <= entry[1] < len(grid[0]) and entry not in path_set:
+            # if entry not in path_set:
+                r_set.add(entry)
+    print(r_set)
 
