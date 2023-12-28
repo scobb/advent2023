@@ -159,18 +159,44 @@ def part_b(infile: TextIO) -> str:
         if pos == s_pos:
             break
 
-    print(path)
+    # print(path)
     path_set = set(path)
-    r_set = set()
-    for idx in range(1,len(path)):
-        prev = path[idx-1]
-        cur = path[idx]
-        from_dir = (prev[0]-cur[0],prev[1]-cur[1])
-        pipe = grid[cur[0]][cur[1]]
-        for delta in l_splits[pipe][from_dir]:
-            entry = cur[0]+delta[0],cur[1]+delta[1]
-            if 0 <= entry[0] < len(grid) and 0 <= entry[1] < len(grid[0]) and entry not in path_set:
-            # if entry not in path_set:
-                r_set.add(entry)
-    print(r_set)
+    for splits in (r_splits, l_splits):
+        try:
+            inner_set = set()
+            for idx in range(1,len(path)):
+                prev = path[idx-1]
+                cur = path[idx]
+                from_dir = (prev[0]-cur[0],prev[1]-cur[1])
+                pipe = grid[cur[0]][cur[1]]
+                for delta in splits[pipe][from_dir]:
+                    entry = cur[0]+delta[0],cur[1]+delta[1]
+                    if 0 <= entry[0] < len(grid) and 0 <= entry[1] < len(grid[0]) and entry not in path_set:
+                        inner_set.add(entry)
+            candidates = inner_set.copy()
+            while candidates:
+                candidate = candidates.pop()
+                neighbor_set = set(unfiltered_neighbors(candidate[0],candidate[1], grid))
+                if len(neighbor_set) != 4:
+                    raise BorderViolation()
+                neighbor_set -= path_set
+                neighbor_set -= inner_set
+                if neighbor_set:
+                    inner_set |= neighbor_set
+                    candidates |= neighbor_set
+            return str(len(inner_set))
+        except BorderViolation:
+            continue
 
+class BorderViolation(Exception):
+    pass
+
+def unfiltered_neighbors(y: int, x:int, grid: List[List[str]]):
+    if y > 0:
+        yield y-1, x
+    if x > 0:
+        yield y, x-1
+    if y < len(grid) - 1:
+        yield y+1, x
+    if x < len(grid[0]) - 1:
+        yield y, x+1
