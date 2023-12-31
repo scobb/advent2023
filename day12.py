@@ -60,7 +60,7 @@ def common_it(infile: TextIO, row_xform: Callable[[str, Tuple[int]],Tuple[str,Tu
         # print(type(group_sizes))
 
         inner_res = rec(puzzle, group_sizes, 0, 0, 0)
-        print(inner_res)
+        # print(puzzle, inner_res)
         result += inner_res
         # break
     return str(result)
@@ -70,7 +70,7 @@ def unfold_record(record: str, group_sizes: Tuple[int]) -> Tuple[str, Tuple[int]
     """replace the list of spring conditions with five copies of itself (separated by ?)
     and replace the list of contiguous groups of damaged springs with five copies of itself (separated by ,).
     """
-    return '?'.join(record * 5), group_sizes * 5
+    return '?'.join([record] * 5), group_sizes * 5
 
 
 def part_b(infile: TextIO) -> str:
