@@ -1,72 +1,70 @@
 
 from util import harness
-from typing import TextIO, List
+from typing import TextIO, List, Tuple, Set
 from collections import defaultdict
 
 if __name__ == '__main__':
     harness(13)
 
-def find_reflection(rows: List[int]) -> int | None:
+class Candidate:
+    def __init__(self, idx: int, missing: Set[int]):
+        self.idx = idx
+        self.missing = missing
+
+    def __repr__(self):
+        return f"Candidate(idx={self.idx}, missing={self.missing})"
+
+def find_reflection(rows: List[int], acceptable_misses: int = 0) -> List[Candidate]:
     val_to_pos = defaultdict(list)
     candidates = defaultdict(set)
     for idx, val in enumerate(rows):
         val_to_pos[val].append(idx)
-        # print(val_to_pos[val])
         if len(val_to_pos[val]) > 1:
             for _idx in range(len(val_to_pos[val]) - 1):
                 potential_candidate = val_to_pos[val][_idx] + idx
                 if potential_candidate % 2 == 0:
                     continue
                 candidate = (val_to_pos[val][_idx] + idx) // 2
-                # print(val_to_pos[val], candidate)
                 candidates[candidate].add(val_to_pos[val][_idx])
                 candidates[candidate].add(idx)
-                # print(candidates)
     print(candidates)
+    # if 0 not in candidates and acceptable_misses > 0:
+    #     candidates[0] = set()
+    # if len(rows) - 1 not in candidates and acceptable_misses > 0:
+    #     candidates[len(rows)-1] = set()
+    result = []
     for candidate, reflected in candidates.items():
-        reflected = list(reflected)
-        # print(candidate, reflected, len(rows) - 1)
-        if 0 in reflected:
-            print('*')
-            # print(reflected[:candidate], list(range(candidate)))
-            if all(req in reflected for req in range(candidate+1)):
-                return candidate
-        if len(rows) - 1 in reflected:
-            print('**')
-            # print(reflected[len(rows) - 2 - candidate:], list(range(candidate,len(rows))))
-            # print(reflected[candidate:], list(range(candidate+1, len(reflected)+1)))
-            if all(req in reflected for req in range(candidate, len(rows))):
-                return candidate
-    return None
+        # reflected = list(reflected)
+        front_set = set(range(candidate+1))
+        front_diff = front_set - reflected
+        print(f'front_diff: {front_diff}')
+        if len(front_diff) == acceptable_misses:
+            result.append(Candidate(candidate, front_diff))
+        back_set = set(range(candidate+1, len(rows)))
+        back_diff = back_set - reflected
+        if len(back_diff) == acceptable_misses:
+            result.append(Candidate(candidate, back_diff))
+    return result
 
 def score(rows: List[int], cols: List[int]) -> int:
     print(rows)
     print(cols)
     row_ref = find_reflection(rows)
-    if row_ref is not None:
+    if row_ref:
         print(f'row_ref: {row_ref}')
-        return (1+row_ref) * 100
+        return (1+row_ref[0].idx) * 100
     else:
         col_ref = find_reflection(cols)
-        if col_ref is None:
+        if not col_ref:
             raise ValueError('no reflection')
         print(f'col_ref: {col_ref}')
-        return 1+col_ref
+        return 1+col_ref[0].idx
 
-def part_a(infile: TextIO) -> str:
+def parse(infile: TextIO) -> Tuple[List[int], List[int]]:
     rows = []
     cols = []
-    result = 0
-    ctr = 0
-    for line in infile.readlines():
-        ls = line.strip()
-        if not ls:
-            ctr += 1
-            result += score(rows, cols)
-            # print(find_reflection(cols))
-            rows = []
-            cols = []
-            continue
+    ls = infile.readline().strip()
+    while ls:
         cols = cols or [0 for _ in ls]
         row = 0
         for idx, ch in enumerate(ls):
@@ -76,13 +74,76 @@ def part_a(infile: TextIO) -> str:
             row <<= 1
             cols[idx] <<= 1
         rows.append(row)
+        ls = infile.readline().strip()
+    return rows, cols
 
-    ctr+=1
-    result += score(rows, cols)
-    print(ctr)
+def part_a(infile: TextIO) -> str:
+    result = 0
+    while True:
+        rows, cols = parse(infile)
+        if not rows:
+            break
+        result += score(rows, cols)
     return str(result)
 
 
-def part_b(infile: TextIO) -> str:
-    pass
+def find_smudged_reflection(rows: List[int]) -> Candidate | None:
+    candidates = find_reflection(rows, 1)
+    candidates.append(Candidate(0, {0}))
+    candidates.append(Candidate(len(rows)-1, {len(rows)-1}))
+    # max_row = max(rows)
+    # print(candidates)
+    # print(rows)
+    for cand in candidates:
+        missing_idx = cand.missing.pop()
+        if cand.idx == 0:
+            target_idx = 1
+        elif cand.idx == len(rows) - 1:
+            target_idx = len(rows) - 2
+        else:
+            target_idx = cand.idx + (cand.idx + 1 - missing_idx)
 
+        # print(missing_idx, target_idx, len(rows))
+        if not 0 <= target_idx < len(rows):
+            continue
+        target_val = rows[target_idx]
+        smudge_val = rows[missing_idx]
+
+        # print(target_idx, missing_idx, target_val, smudge_val)
+        # print(format(target_val, '012b'))
+        # print(format(smudge_val, '012b'))
+        if count_ones(target_val ^ smudge_val) == 1:
+            return cand
+    return None
+
+def count_ones(x: int) -> int:
+    result = 0
+    while x:
+        if x & 1:
+            result += 1
+        x >>= 1
+    return result
+
+def part_b(infile: TextIO) -> str:
+    result = 0
+    ctr = 0
+    while True:
+        rows, cols = parse(infile)
+        if not rows:
+            break
+        print('---')
+        row_ref = find_smudged_reflection(rows)
+        if row_ref is not None:
+            print(f'row_ref: {row_ref}')
+            result += 100 * (1+row_ref.idx)
+        else:
+            col_ref = find_smudged_reflection(cols)
+            if col_ref is None:
+                print(ctr, rows, cols)
+                for row in rows:
+                    print(format(row, '016b'))
+                raise ValueError('no reflection')
+            print(f'col_ref: {col_ref}')
+            result += (1+col_ref.idx)
+        ctr += 1
+    return str(result)
