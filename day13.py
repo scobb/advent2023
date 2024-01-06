@@ -35,15 +35,17 @@ def find_reflection(rows: List[int], acceptable_misses: int = 0) -> List[Candida
     result = []
     for candidate, reflected in candidates.items():
         # reflected = list(reflected)
-        front_set = set(range(candidate+1))
-        front_diff = front_set - reflected
-        print(f'front_diff: {front_diff}')
-        if len(front_diff) == acceptable_misses:
-            result.append(Candidate(candidate, front_diff))
-        back_set = set(range(candidate+1, len(rows)))
-        back_diff = back_set - reflected
-        if len(back_diff) == acceptable_misses:
-            result.append(Candidate(candidate, back_diff))
+        if candidate < len(rows) // 2:
+            front_set = set(range(candidate+1))
+            front_diff = front_set - reflected
+            # print(f'front_diff: {front_diff}')
+            if len(front_diff) == acceptable_misses:
+                result.append(Candidate(candidate, front_diff))
+        else:
+            back_set = set(range(candidate+1, len(rows)))
+            back_diff = back_set - reflected
+            if len(back_diff) == acceptable_misses:
+                result.append(Candidate(candidate, back_diff))
     return result
 
 def score(rows: List[int], cols: List[int]) -> int:
@@ -104,14 +106,11 @@ def find_smudged_reflection(rows: List[int]) -> Candidate | None:
             target_idx = cand.idx + (cand.idx + 1 - missing_idx)
 
         # print(missing_idx, target_idx, len(rows))
-        if not 0 <= target_idx < len(rows):
-            continue
+        # if not 0 <= target_idx < len(rows):
+        #     continue
         target_val = rows[target_idx]
         smudge_val = rows[missing_idx]
-
-        # print(target_idx, missing_idx, target_val, smudge_val)
-        # print(format(target_val, '012b'))
-        # print(format(smudge_val, '012b'))
+        print(target_val, smudge_val, target_val ^ smudge_val)
         if count_ones(target_val ^ smudge_val) == 1:
             return cand
     return None
