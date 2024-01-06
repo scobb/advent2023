@@ -97,17 +97,17 @@ def find_smudged_reflection(rows: List[int]) -> Candidate | None:
     # print(candidates)
     # print(rows)
     for cand in candidates:
-        missing_idx = cand.missing.pop()
-        target_idx = cand.idx + (cand.idx + 1 - missing_idx)
+        for missing_idx in cand.missing:
+            target_idx = cand.idx + (cand.idx + 1 - missing_idx)
 
-        print('BLAH', cand.idx, missing_idx, target_idx, len(rows))
-        # if not 0 <= target_idx < len(rows):
-        #     continue
-        target_val = rows[target_idx]
-        smudge_val = rows[missing_idx]
-        print(target_val, smudge_val, target_val ^ smudge_val)
-        if count_ones(target_val ^ smudge_val) == 1:
-            return cand
+            # print('BLAH', cand.idx, missing_idx, target_idx, len(rows))
+            # if not 0 <= target_idx < len(rows):
+            #     continue
+            target_val = rows[target_idx]
+            smudge_val = rows[missing_idx]
+            # print(target_val, smudge_val, target_val ^ smudge_val)
+            if count_ones(target_val ^ smudge_val) == 1:
+                return cand
     return None
 
 def count_ones(x: int) -> int:
