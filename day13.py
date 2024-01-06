@@ -92,20 +92,15 @@ def part_a(infile: TextIO) -> str:
 def find_smudged_reflection(rows: List[int]) -> Candidate | None:
     candidates = find_reflection(rows, 1)
     candidates.append(Candidate(0, {0}))
-    candidates.append(Candidate(len(rows)-1, {len(rows)-1}))
+    candidates.append(Candidate(len(rows)-2, {len(rows)-1}))
     # max_row = max(rows)
     # print(candidates)
     # print(rows)
     for cand in candidates:
         missing_idx = cand.missing.pop()
-        if cand.idx == 0:
-            target_idx = 1
-        elif cand.idx == len(rows) - 1:
-            target_idx = len(rows) - 2
-        else:
-            target_idx = cand.idx + (cand.idx + 1 - missing_idx)
+        target_idx = cand.idx + (cand.idx + 1 - missing_idx)
 
-        # print(missing_idx, target_idx, len(rows))
+        print('BLAH', cand.idx, missing_idx, target_idx, len(rows))
         # if not 0 <= target_idx < len(rows):
         #     continue
         target_val = rows[target_idx]
