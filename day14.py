@@ -1,6 +1,6 @@
 
 from util import harness
-from typing import TextIO, Tuple, List
+from typing import TextIO, Tuple
 from functools import cache
 from collections import defaultdict
 
@@ -27,8 +27,7 @@ def slide(rocks: Tuple[Tuple[int, int, str]]) -> Tuple[Tuple[int,int,str]]:
 
 @cache
 def rotate(rocks: Tuple[Tuple[int, int, str]], num_cols: int) -> Tuple[Tuple[int,int,str]]:
-    # TODO - implement
-    return tuple((col_idx, num_cols - row_idx - 1, c) for (row_idx, col_idx, c) in rocks)
+    return tuple(sorted((col_idx, num_cols - row_idx - 1, c) for (row_idx, col_idx, c) in rocks))
 
 
 def print_map(rocks: Tuple[Tuple[int, int, str]], num_rows: int, num_cols: int):
@@ -65,24 +64,14 @@ def common(infile: TextIO, rotations: int) -> str:
         if len(results[rocks]) > 3:
             cycle_length_a = results[rocks][-1] - results[rocks][-2]
             cycle_length_b = results[rocks][-2] - results[rocks][-3]
-            # if cycle_length_a == cycle_length_b:
             if cycle_length_a == cycle_length_b and (rotations - idx) % cycle_length_a == 0:
-                print(directions[idx % len(directions)])
-                print(idx, rotations, cycle_length_a, row_cnt, rocks)
                 # get back to north orientation
                 rocks = rotate(rocks, row_cnt)
-                print_map(rocks, row_cnt, col_cnt)
+                # print_map(rocks, row_cnt, col_cnt)
                 result = sum((row_cnt - r[0]) for r in rocks if r[2] == 'O')
                 return str(result)
-            print(results[rocks])
-        print('BEFORE ROTATION')
-        print_map(rocks, row_cnt, col_cnt)
         rocks = rotate(rocks, row_cnt)
-        print('AFTER ROTATION')
-        print_map(rocks, row_cnt, col_cnt)
-    # print(sorted(rocks))
 
 
 def part_b(infile: TextIO) -> str:
     return common(infile, 4*1000000000 - 1)
-
