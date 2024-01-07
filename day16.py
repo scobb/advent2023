@@ -29,6 +29,9 @@ def split(c: str, direction: Tuple[int,int]) -> List[Tuple[int,int]]:
 def part_a(infile: TextIO) -> str:
     grid = [l.strip() for l in infile.readlines() if l.strip()]
     beams = [(0,-1,RIGHT)]
+    return str(traverse(grid, beams))
+
+def traverse(grid, beams) -> int:
     energized = set()
     traversed = set()
 
@@ -44,8 +47,24 @@ def part_a(infile: TextIO) -> str:
             direction = reflect(c, direction)
             for _direction in split(c, direction):
                 beams.append((y,x,_direction))
-    return str(len(energized))
+    return len(energized)
 
 def part_b(infile: TextIO) -> str:
-    pass
+    grid = [l.strip() for l in infile.readlines() if l.strip()]
+    result = 0
+    # top row
+    for col in range(len(grid[0])):
+        result = max(result, traverse(grid, [(-1,col,DOWN)]))
+    # right col
+    for row in range(len(grid)):
+        result = max(result, traverse(grid, [(row,len(grid[0]), LEFT)]))
+    # bottom row
+    for col in range(len(grid[0])):
+        result = max(result, traverse(grid, [(len(grid),col,UP)]))
+    # left col
+    for row in range(len(grid)):
+        result = max(result, traverse(grid, [(row,-1, RIGHT)]))
+    # beams = [(0,-1,RIGHT)]
+    # return traverse(grid, beams)
+    return str(result)
 
